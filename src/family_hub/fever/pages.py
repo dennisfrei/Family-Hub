@@ -414,6 +414,7 @@ def _chart_card(detail: EpisodeDetail, refresh: Refresh) -> None:
         interpolation=interpolation,
         dark=is_dark(),
         labels=(t("fever.level.fever"), t("fever.level.elevated"), f"{t('fever.temperature')} (°C)"),
+        day_format=i18n.short_day_format(),
     )
     with section(t("fever.curve")) as header:
         with header:

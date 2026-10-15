@@ -80,6 +80,18 @@ def short_day(value: date | datetime) -> str:
     return f"{value:%d.%m.}" if language() is Language.DE else f"{value:%m-%d}"
 
 
+def short_day_format() -> str:
+    """Date pattern of `short_day` in strftime syntax, e.g. for chart axes."""
+    return "%d.%m." if language() is Language.DE else "%m-%d"
+
+
+def day_range(start: date, end: date) -> str:
+    """Format a date range; the German form leaves out the first year."""
+    if language() is Language.DE:
+        return f"{start:%d.%m.} – {end:%d.%m.%Y}"
+    return f"{start:%Y-%m-%d} – {end:%Y-%m-%d}"
+
+
 def weekday(index: int) -> str:
     """Full weekday name, Monday = 0."""
     return t(f"weekday.{index}")

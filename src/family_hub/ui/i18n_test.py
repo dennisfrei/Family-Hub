@@ -28,3 +28,13 @@ def test_german_formatting() -> None:
 def test_unknown_key_and_placeholders() -> None:
     assert i18n.t("does.not.exist") == "does.not.exist"
     assert i18n.t("age.months", m=3) == "3 Mon."
+
+
+@pytest.mark.parametrize(
+    ("lang", "expected"),
+    [(i18n.Language.DE, "12.10. – 18.10.2026"), (i18n.Language.EN, "2026-10-12 – 2026-10-18")],
+)
+def test_day_range(monkeypatch: pytest.MonkeyPatch, lang: i18n.Language, expected: str) -> None:
+    monkeypatch.setattr(i18n, "language", lambda: lang)
+
+    assert i18n.day_range(date(2026, 10, 12), date(2026, 10, 18)) == expected

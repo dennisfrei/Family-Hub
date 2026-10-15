@@ -84,12 +84,13 @@ def _navigation_list(modules: list[Module], active: str, classes: str = "") -> N
 
 
 @contextmanager
-def frame(active: str, title: str | None = None) -> Generator[ui.column]:
+def frame(active: str, title: str | None = None, *, wide: bool = False) -> Generator[ui.column]:
     """Render the page frame and yield the content column.
 
     Args:
         active: Name of the module whose navigation entry is highlighted.
         title: Header title; defaults to the module label.
+        wide: Use more of large screens, e.g. for week grids.
     """
     apply_theme()
     user = signed_in_user()
@@ -108,5 +109,6 @@ def frame(active: str, title: str | None = None) -> Generator[ui.column]:
         ui.button(icon="refresh", on_click=ui.navigate.reload).props("flat round").tooltip(t("layout.refresh"))
         if user is not None:
             _user_menu(user)
-    with ui.column().classes("w-full max-w-5xl mx-auto px-3 sm:px-6 py-4 gap-4 min-w-0") as content:
+    width = "max-w-7xl" if wide else "max-w-5xl"
+    with ui.column().classes(f"w-full {width} mx-auto px-3 sm:px-6 py-4 gap-4 min-w-0") as content:
         yield content

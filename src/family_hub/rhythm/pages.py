@@ -62,7 +62,7 @@ i18n.register(
         "rhythm.tab.stats": ("Statistik", "Stats"),
         "rhythm.this_week": ("Diese Woche", "This week"),
         "rhythm.next_week": ("Nächste Woche", "Next week"),
-        "rhythm.week_of": ("Woche vom {start} bis {end}", "Week of {start} to {end}"),
+        "rhythm.week_of": ("Woche {range}", "Week {range}"),
         "rhythm.print": ("Drucken", "Print"),
         "rhythm.open": ("offen", "open"),
         "rhythm.swapped": ("getauscht", "swapped"),
@@ -120,7 +120,7 @@ def register_pages() -> None:
 
     @ui.page("/rhythm")
     async def rhythm_page() -> None:
-        with frame("rhythm"):
+        with frame("rhythm", wide=True):
             page_title(t("rhythm.title"), t("rhythm.subtitle"))
             await _content()
 
@@ -186,7 +186,7 @@ async def _week_panel() -> None:
                 value="next" if app.storage.user.get("rhythm_next_week", False) else "current",
                 on_change=switch,
             ).props("unelevated no-caps toggle-color=primary")
-            ui.label(t("rhythm.week_of", start=i18n.short_day(start), end=i18n.day(start + timedelta(days=6)))).classes(
+            ui.label(t("rhythm.week_of", range=i18n.day_range(start, start + timedelta(days=6)))).classes(
                 "text-sm hub-muted grow"
             )
             week_param = "next" if app.storage.user.get("rhythm_next_week", False) else "current"
@@ -236,7 +236,9 @@ def _slot_chip(slot: SlotRead, people: dict[int, PersonRead], refresh: Refresh) 
         .on("click", lambda: _swap_dialog(slot, people, refresh))
     ):
         with ui.row().classes("items-center gap-1 no-wrap"):
-            ui.label(slot.duty_name).classes("text-sm font-medium leading-tight grow break-words min-w-0")
+            ui.label(slot.duty_name).classes("text-sm font-medium leading-tight grow break-words min-w-0").style(
+                "hyphens: auto"
+            )
             if slot.source is Source.SWAP:
                 ui.icon("swap_horiz").classes("text-sm hub-muted").tooltip(t("rhythm.swapped"))
             if slot.warning:
@@ -630,7 +632,7 @@ async def _print_view(week: str) -> None:
     with ui.column().classes("w-full p-4 gap-3 bg-white text-black"):
         with ui.row().classes("w-full items-center"):
             ui.label(
-                f"{t('rhythm.title')} · {t('rhythm.week_of', start=i18n.short_day(start), end=i18n.day(start + timedelta(days=6)))}"
+                f"{t('rhythm.title')} · {t('rhythm.week_of', range=i18n.day_range(start, start + timedelta(days=6)))}"
             ).classes("text-2xl font-bold grow")
             ui.button(t("rhythm.print"), on_click=lambda: ui.run_javascript("window.print()")).props(
                 "unelevated no-caps"

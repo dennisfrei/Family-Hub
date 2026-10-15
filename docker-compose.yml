@@ -68,7 +68,7 @@ services:
     environment:
       # External URL; Pocket ID needs its own host or port (no path prefix), and passkeys need HTTPS or localhost
       APP_URL: ${POCKET_ID_URL:-http://localhost:1411}
-      TRUST_PROXY: "true"
+      TRUST_PROXY: "false"
       ANALYTICS_DISABLED: "true"
     ports:
       - "127.0.0.1:1411:1411"

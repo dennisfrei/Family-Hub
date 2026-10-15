@@ -92,6 +92,7 @@ def fever_chart(
     interpolation: Interpolation = Interpolation.PCHIP,
     dark: bool = False,
     labels: tuple[str, str, str] = ("Fieber", "Erhöht", "Temperatur (°C)"),
+    day_format: str = "%d.%m.",
 ) -> go.Figure:
     """Build the fever curve for readings sorted oldest first."""
     temperatures = [r.temperature for r in readings]
@@ -106,7 +107,7 @@ def fever_chart(
             y=temperatures,
             mode="markers",
             marker={"size": 10, "color": LINE_COLOR, "line": {"width": 2, "color": "white"}},
-            hovertemplate="<b>%{y:.1f} °C</b><br>%{x|%d.%m. %H:%M}<br>%{text}<extra></extra>",
+            hovertemplate=f"<b>%{{y:.1f}} °C</b><br>%{{x|{day_format} %H:%M}}<br>%{{text}}<extra></extra>",
             text=[r.note or "" for r in readings],
             showlegend=False,
         )
@@ -126,7 +127,7 @@ def fever_chart(
             )
     fig.update_layout(
         yaxis={"range": [floor, ceiling], "title": labels[2]},
-        xaxis={"tickformat": "%d.%m.\n%H:%M"},
+        xaxis={"tickformat": f"{day_format}\n%H:%M"},
         template="plotly_dark" if dark else "plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
