@@ -1,0 +1,98 @@
+[project]
+name = "family-hub"
+version = "0.1.0"
+description = "Self-hosted family app: growth, fever, weekly duties and memories"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.20.0",
+    "asyncpg>=0.32.0",
+    "authlib>=1.9.1",
+    "boto3>=1.43.113",
+    "fpdf2>=2.8.9",
+    "httpx2>=2.13.1",
+    "litestar[jwt]>=2.24.0",
+    "matplotlib>=3.11.2",
+    "nicegui>=3.18.0",
+    "numpy>=2.5.4",
+    "plotly>=7.1.0",
+    "pydantic-settings>=2.16.0",
+    "sqlalchemy[asyncio]>=2.1.4",
+]
+
+[project.scripts]
+family-hub = "family_hub.main:main"
+family-hub-token = "family_hub.admin.cli:token_main"
+family-hub-backup = "family_hub.backup.cli:backup_main"
+family-hub-restore = "family_hub.backup.cli:restore_main"
+family-hub-import-fever = "family_hub.fever.importer:import_main"
+family-hub-import-growth = "family_hub.growth.importer:import_main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "boto3-stubs[s3]>=1.43.113",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "scipy>=1.18.1",
+    "ty>=0.0.88",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle
+    "F",     # pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "UP",    # pyupgrade
+    "N",     # pep8-naming
+    "C4",    # flake8-comprehensions
+    "C90",   # mccabe
+    "D",     # pydocstyle
+    "TID",   # flake8-tidy-imports
+    "ANN",   # flake8-annotations
+    "ASYNC", # flake8-async
+    "PTH",   # flake8-use-pathlib
+]
+ignore = ["E501", "E203", "D417", "ANN002", "ANN003", "ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"*_test.py" = ["D1"]
+"alembic/versions/*.py" = ["D103"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["alembic"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 40
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"os.path".msg = "Use pathlib.Path instead."
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+testpaths = ["src"]
+python_files = ["*_test.py"]
+asyncio_mode = "auto"
+addopts = "-p nicegui.testing.user_plugin --strict-markers"
+markers = ["integration: needs PostgreSQL (TEST_DATABASE_URL), set automatically for tests using the database"]
+main_file = ""

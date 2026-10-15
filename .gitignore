@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.venv/
+# Local settings with secrets; only the example is tracked
+.env*
+.ennv
+!.env.example
+.ruff_cache/
+.pytest_cache/
+.nicegui/
+dist/
+build/
+*.egg-info/
+.vscode/
+.idea/
+.DS_Store
+.claude/settings.local.json
+
+backups/
+data/private/
+*.json.gz
