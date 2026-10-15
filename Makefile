@@ -1,4 +1,4 @@
-# Settings and defaults come from .env (copy of envs.example)
+# Settings and defaults come from .env (copy of .env.example)
 -include .env
 
 IMAGE_NAME ?= family-hub
