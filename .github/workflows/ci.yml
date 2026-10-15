@@ -11,10 +11,10 @@ permissions:
 jobs:
   quality:
     name: Lint, format, types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           version: "0.12.19"
           enable-cache: true
@@ -28,10 +28,10 @@ jobs:
 
   unit:
     name: Unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           version: "0.12.19"
           enable-cache: true
@@ -40,7 +40,7 @@ jobs:
 
   integration:
     name: Integration tests (PostgreSQL)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     services:
       postgres:
         image: postgres:16-alpine
@@ -56,8 +56,8 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           version: "0.12.19"
           enable-cache: true
@@ -67,10 +67,10 @@ jobs:
 
   image:
     name: Image build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [quality, unit, integration]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
       - name: Build (includes the smoke check)
         run: docker build -t family-hub:ci .
       - name: Size
