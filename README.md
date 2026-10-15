@@ -56,6 +56,8 @@ use an OpenID Connect provider, for example [Pocket ID](https://pocket-id.org):
 1. Create a client with PKCE, callback URL `<PUBLIC_URL>/auth/callback` and logout callback URL `<PUBLIC_URL>/`.
 2. Set `AUTH_ENABLED=true`, `PUBLIC_URL`, `OIDC_ISSUER`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET`.
 3. Optional: `OIDC_ALLOWED_GROUPS` limits who may sign in, `OIDC_ADMIN_GROUPS` who may use the admin area.
+4. If the server cannot reach the issuer URL (e.g. inside Kubernetes or Docker Compose), set `OIDC_INTERNAL_URL` to an
+   address it can reach, such as the provider's service.
 
 For a local test, `docker compose --profile auth up -d pocket-id` starts Pocket ID on http://localhost:1411.
 

@@ -192,3 +192,41 @@ def test_groups_from_comma_separated_env(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setenv("OIDC_ADMIN_GROUPS", "parents, admins")
 
     assert Settings(_env_file=None).oidc_admin_groups == ["parents", "admins"]
+
+
+def test_internal_url_only_for_server_side_endpoints() -> None:
+    metadata = {
+        "issuer": "https://id.example.org",
+        "authorization_endpoint": "https://id.example.org/authorize",
+        "end_session_endpoint": "https://id.example.org/api/oidc/end-session",
+        "token_endpoint": "https://id.example.org/api/oidc/token",
+        "jwks_uri": "https://id.example.org/.well-known/jwks.json",
+        "userinfo_endpoint": "https://id.example.org/api/oidc/userinfo",
+    }
+
+    rewritten = oidc.internal_endpoints(metadata, "https://id.example.org/", "http://pocket-id:1411")
+
+    assert rewritten["token_endpoint"] == "http://pocket-id:1411/api/oidc/token"
+    assert rewritten["jwks_uri"] == "http://pocket-id:1411/.well-known/jwks.json"
+    assert rewritten["userinfo_endpoint"] == "http://pocket-id:1411/api/oidc/userinfo"
+    assert rewritten["issuer"] == metadata["issuer"]
+    assert rewritten["authorization_endpoint"] == metadata["authorization_endpoint"]
+    assert rewritten["end_session_endpoint"] == metadata["end_session_endpoint"]
+
+
+async def test_internal_client_rewrites_after_discovery(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = SETTINGS.model_copy(update={"oidc_internal_url": "http://pocket-id:1411"})
+    client = oidc.create_client(settings)
+    assert isinstance(client, oidc.StarletteOAuth2App)
+    discovered = {"issuer": "https://id.example.org", "token_endpoint": "https://id.example.org/api/oidc/token"}
+
+    async def fake_load(self: object) -> dict[str, object]:
+        client.server_metadata.update({**discovered, "_loaded_at": 1})
+        return client.server_metadata
+
+    monkeypatch.setattr(oidc.StarletteOAuth2App, "load_server_metadata", fake_load)
+    metadata = await client.load_server_metadata()
+
+    assert client._server_metadata_url == "http://pocket-id:1411/.well-known/openid-configuration"
+    assert metadata["token_endpoint"] == "http://pocket-id:1411/api/oidc/token"
+    assert metadata["issuer"] == "https://id.example.org"

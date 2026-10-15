@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     oidc_issuer: str = ""
     oidc_client_id: str = ""
     oidc_client_secret: SecretStr | None = None
+    oidc_internal_url: str = ""
     oidc_scopes: str = "openid profile email groups"
     oidc_allowed_groups: Annotated[list[str], NoDecode] = []
     oidc_admin_groups: Annotated[list[str], NoDecode] = []

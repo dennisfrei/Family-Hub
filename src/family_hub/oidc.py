@@ -7,7 +7,7 @@ from typing import Any, Protocol
 from urllib.parse import urlencode
 
 from authlib.integrations.base_client import OAuthError
-from authlib.integrations.starlette_client import OAuth
+from authlib.integrations.starlette_client import OAuth, StarletteOAuth2App
 from fastapi import FastAPI
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 from pydantic import BaseModel, ConfigDict, ValidationError
@@ -221,19 +221,61 @@ class LoginRequiredMiddleware:
         await self.app(scope, receive, send)
 
 
+SERVER_SIDE_ENDPOINTS = (
+    "token_endpoint",
+    "jwks_uri",
+    "userinfo_endpoint",
+    "introspection_endpoint",
+    "revocation_endpoint",
+)
+
+
+def internal_endpoints(metadata: dict[str, Any], public_url: str, internal_url: str) -> dict[str, Any]:
+    """Point the endpoints the server calls itself at the internal URL; browser redirects and the issuer stay public."""
+    public, internal = public_url.rstrip("/"), internal_url.rstrip("/")
+    rewritten = dict(metadata)
+    for key in SERVER_SIDE_ENDPOINTS:
+        value = rewritten.get(key)
+        if isinstance(value, str) and value.startswith(public):
+            rewritten[key] = internal + value.removeprefix(public)
+    return rewritten
+
+
+def _internal_client_class(public_url: str, internal_url: str) -> type[StarletteOAuth2App]:
+    class InternalOAuth2App(StarletteOAuth2App):
+        """Reaches the provider over an internal URL, e.g. a cluster service, while users see the public one."""
+
+        async def load_server_metadata(self) -> dict[str, Any]:
+            loaded = "_loaded_at" in self.server_metadata
+            metadata = await super().load_server_metadata()
+            if not loaded:
+                self.server_metadata = internal_endpoints(metadata, public_url, internal_url)
+            return self.server_metadata
+
+    return InternalOAuth2App
+
+
 def create_client(settings: Settings) -> OidcClient:
-    """Register the provider from its discovery document; PKCE is always used."""
+    """Register the provider from its discovery document; PKCE is always used.
+
+    With `OIDC_INTERNAL_URL`, discovery, token exchange, keys and user info go to that URL instead of the issuer.
+    """
     secret = settings.oidc_client_secret.get_secret_value() if settings.oidc_client_secret else None
     client_kwargs: dict[str, str] = {"scope": settings.oidc_scopes, "code_challenge_method": "S256"}
     if secret is None:
         client_kwargs["token_endpoint_auth_method"] = "none"
+    discovery_base = (settings.oidc_internal_url or settings.oidc_issuer).rstrip("/")
+    extra: dict[str, Any] = {}
+    if settings.oidc_internal_url:
+        extra["client_cls"] = _internal_client_class(settings.oidc_issuer, settings.oidc_internal_url)
     oauth = OAuth()
     return oauth.register(
         name="oidc",
         client_id=settings.oidc_client_id,
         client_secret=secret,
-        server_metadata_url=f"{settings.oidc_issuer.rstrip('/')}/.well-known/openid-configuration",
+        server_metadata_url=f"{discovery_base}/.well-known/openid-configuration",
         client_kwargs=client_kwargs,
+        **extra,
     )
 
 
