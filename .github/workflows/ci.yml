@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, format, types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.19"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Lint
+        run: uvx ruff check src alembic
+      - name: Format
+        run: uvx ruff format --check src alembic
+      - name: Types (ty)
+        run: uv run ty check src alembic
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.19"
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run pytest -m "not integration"
+
+  integration:
+    name: Integration tests (PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: family_hub
+          POSTGRES_PASSWORD: family_hub
+          POSTGRES_DB: family_hub
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U family_hub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.19"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Migrations, services, backup/restore and pages
+        run: uv run pytest -m integration
+
+  image:
+    name: Image build
+    runs-on: ubuntu-latest
+    needs: [quality, unit, integration]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (includes the smoke check)
+        run: docker build -t family-hub:ci .
+      - name: Size
+        run: docker image ls family-hub:ci --format "{{.Repository}}:{{.Tag}} {{.Size}}"
