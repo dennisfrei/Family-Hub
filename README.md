@@ -27,6 +27,19 @@ make run        # starts PostgreSQL in Docker, the app on http://localhost:8080
 make            # lists all commands
 ```
 
+## Gallery
+
+| | |
+| --- | --- |
+| ![Start page with today's duties, a sick child and a memory](docs/screenshots/home.png) | ![Weekly duty plan](docs/screenshots/rhythm.png) |
+| Start page: today's duties, sick children, memories | Weekly duty plan with rotations and swaps |
+| ![Fever curve of an illness](docs/screenshots/fever.png) | ![Growth chart with percentiles](docs/screenshots/growth.png) |
+| Fever curve with thresholds | Growth chart with percentiles |
+| ![Time capsule timeline](docs/screenshots/time-capsule.png) | ![People and children](docs/screenshots/people.png) |
+| Time capsule: sayings, moments and milestones | People and children |
+
+Demo data; the growth chart uses made-up reference curves.
+
 ## Configuration
 
 All settings are environment variables, read from `.env`. [`.env.example`](.env.example) lists every one with a
