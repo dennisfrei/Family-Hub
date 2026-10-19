@@ -41,6 +41,8 @@ services:
     volumes:
       # Growth reference tables, kept outside git (see README); same relative path as on the host
       - ./data/private/growth-reference:/app/data/private/growth-reference:ro
+      # Shared with the tools service so both track the same last upload
+      - ./backups:/app/backups
     depends_on:
       db:
         condition: service_healthy
