@@ -160,7 +160,7 @@ def register_pages() -> None:
 
             with ui.row().classes("w-full gap-2"):
                 for label, path in (
-                    (t("home.new_reading"), "/fever"),
+                    (t("home.new_reading"), "/vitals/fever"),
                     (t("home.new_memory"), "/time-capsule"),
                     (t("home.new_measurement"), "/growth"),
                     (t("home.week"), "/rhythm"),
@@ -176,7 +176,7 @@ def register_pages() -> None:
                         with (
                             ui.row()
                             .classes("w-full items-center gap-3 no-wrap cursor-pointer")
-                            .on("click", lambda e=episode: ui.navigate.to(f"/fever/episodes/{e.id}"))
+                            .on("click", lambda e=episode: ui.navigate.to(f"/vitals/fever/episodes/{e.id}"))
                         ):
                             person_dot(person.color)
                             with ui.column().classes("gap-0 grow min-w-0"):

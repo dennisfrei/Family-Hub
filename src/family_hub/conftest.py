@@ -52,16 +52,13 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             item.add_marker(pytest.mark.integration)
 
 
-async def _create_database(url: str) -> None:
+async def _recreate_database(url: str) -> None:
     target = make_url(url)
     engine = create_async_engine(target.set(database="postgres"), isolation_level="AUTOCOMMIT", poolclass=NullPool)
     try:
         async with engine.connect() as connection:
-            exists = await connection.scalar(
-                text("SELECT 1 FROM pg_database WHERE datname = :name"), {"name": target.database}
-            )
-            if not exists:
-                await connection.execute(text(f'CREATE DATABASE "{target.database}"'))
+            await connection.execute(text(f'DROP DATABASE IF EXISTS "{target.database}" WITH (FORCE)'))
+            await connection.execute(text(f'CREATE DATABASE "{target.database}"'))
     finally:
         await engine.dispose()
 
@@ -75,9 +72,9 @@ async def reset_database(engine: AsyncEngine) -> None:
 
 @pytest.fixture(scope="session")
 def database() -> str:
-    """URL of the test database, created if needed and migrated to the latest revision."""
+    """URL of a freshly created test database, migrated to the latest revision."""
     try:
-        asyncio.run(_create_database(TEST_DATABASE_URL))
+        asyncio.run(_recreate_database(TEST_DATABASE_URL))
     except (OperationalError, OSError) as exc:
         pytest.exit(f"PostgreSQL for integration tests not reachable ({exc}); start it with `make db`", returncode=1)
     run_migrations(Settings(_env_file=None, database_url=TEST_DATABASE_URL))

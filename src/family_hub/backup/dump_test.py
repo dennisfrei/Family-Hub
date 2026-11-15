@@ -6,6 +6,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from family_hub.backup import dump
+from family_hub.blood_pressure import service as blood_pressure
+from family_hub.blood_pressure.schemas import ReadingWrite
 from family_hub.core import service
 from family_hub.core.models import PersonKind, Sex
 from family_hub.core.schemas import PersonWrite
@@ -15,11 +17,13 @@ async def test_roundtrip_replaces_data_and_resets_sequences(session: AsyncSessio
     child = await service.create_person(
         session, PersonWrite(name="Ada", kind=PersonKind.CHILD, birth_date=date(2022, 3, 15), sex=Sex.FEMALE)
     )
+    await blood_pressure.add_reading(session, ReadingWrite(person_id=child.id, systolic=124, diastolic=81, pulse=64))
     connection = await session.connection()
     data = json.loads(json.dumps(await dump.export_data(connection), default=dump.json_default))
     await session.commit()
     await service.create_person(session, PersonWrite(name="Later", kind=PersonKind.ADULT))
     await service.create_person(session, PersonWrite(name="Even later", kind=PersonKind.ADULT))
+    await blood_pressure.add_reading(session, ReadingWrite(person_id=child.id, systolic=150, diastolic=95))
 
     await dump.import_data(await session.connection(), data)
     await session.commit()
@@ -28,6 +32,8 @@ async def test_roundtrip_replaces_data_and_resets_sequences(session: AsyncSessio
     people = await service.list_people(session, include_inactive=True)
     assert [(p.name, p.birth_date) for p in people if p.kind is PersonKind.CHILD] == [("Ada", date(2022, 3, 15))]
     assert after_restore.id == child.id + 1
+    readings = await blood_pressure.list_readings(session, person_id=child.id)
+    assert [(r.systolic, r.diastolic, r.pulse) for r in readings] == [(124, 81, 64)]
     assert data["schema_revision"] == await dump.schema_revision(await session.connection())
     assert {"core.person", "core.child_profile", "fever.episode", "fever.reading"} <= set(data["tables"])
 

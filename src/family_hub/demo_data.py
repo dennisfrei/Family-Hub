@@ -3,6 +3,8 @@
 from datetime import UTC, date, datetime, timedelta
 
 from family_hub import db
+from family_hub.blood_pressure import service as blood_pressure_service
+from family_hub.blood_pressure.schemas import ReadingWrite
 from family_hub.core import service as core_service
 from family_hub.core.models import PersonKind, Sex
 from family_hub.core.schemas import PersonWrite
@@ -29,6 +31,9 @@ async def seed() -> None:
         await fever_service.quick_add_reading(
             session,
             QuickReadingWrite(person_id=child.id, temperature=38.6, measured_at=datetime.now(UTC) - timedelta(hours=2)),
+        )
+        await blood_pressure_service.add_reading(
+            session, ReadingWrite(person_id=adult.id, systolic=124, diastolic=81, pulse=64)
         )
         await growth_service.add_measurements(
             session,
