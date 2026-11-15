@@ -19,6 +19,11 @@ def _quasar_locale() -> dict[str, object]:
     }
 
 
+def _popup() -> ui.element:
+    """A popup that is a menu on wide screens and a centered dialog on phones, so the picker is never clipped."""
+    return ui.element("q-popup-proxy").props("breakpoint=600")
+
+
 class DateField:
     """A read-only input showing the formatted date; tapping opens a calendar."""
 
@@ -28,7 +33,7 @@ class DateField:
         self.input = ui.input(label, value=self._text()).props("outlined dense readonly").classes("w-full")
         if clearable:
             self.input.props("clearable").on("clear", lambda: self._set(None))
-        with self.input, ui.menu().props("auto-close=false") as self.menu:
+        with self.input, _popup() as self.popup:
             self.picker = ui.date(value=value.isoformat() if value else None, on_change=self._picked).props(
                 "minimal first-day-of-week=1"
             )
@@ -40,7 +45,7 @@ class DateField:
     def _picked(self, event: object) -> None:
         picked = getattr(event, "value", None)
         self._set(date.fromisoformat(picked) if picked else None)
-        self.menu.close()
+        self.popup.run_method("hide")
 
     def _set(self, value: date | None) -> None:
         self._value = value
@@ -69,8 +74,10 @@ class TimeField:
         """Create the field inside the current container."""
         self._value = value
         self.input = ui.input(label, value=f"{value:%H:%M}").props("outlined dense readonly").classes("w-full")
-        with self.input, ui.menu() as self.menu:
+        with self.input, _popup() as popup:
             self.picker = ui.time(value=f"{value:%H:%M}", on_change=self._picked).props("format24h minimal")
+            with self.picker, ui.row().classes("w-full justify-end"):
+                ui.button(t("common.ok"), on_click=lambda: popup.run_method("hide")).props("flat dense")
 
     def _picked(self, event: object) -> None:
         picked = getattr(event, "value", None)
