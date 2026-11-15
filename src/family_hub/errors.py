@@ -19,6 +19,10 @@ MESSAGES: dict[str, tuple[str, str]] = {
         "Der Wert muss zwischen {low} und {high} {unit} liegen.",
         "{type} must be between {low} and {high} {unit}",
     ),
+    "error.blood_pressure_order": (
+        "Der obere Wert (SYS) muss über dem unteren (DIA) liegen.",
+        "Systolic must be higher than diastolic",
+    ),
     "error.before_birth": ("Das Datum liegt vor der Geburt.", "Date is before the birth date"),
     "error.future_date": ("Das Datum liegt in der Zukunft.", "Date is in the future"),
     "error.text_required": ("Der Text darf nicht leer sein.", "Text must not be empty"),

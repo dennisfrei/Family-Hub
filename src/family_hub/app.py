@@ -11,7 +11,21 @@ from litestar.openapi.spec import Server
 from nicegui import app as nicegui_app
 from starlette.types import ASGIApp
 
-from family_hub import admin, app_version, core, db, fever, growth, health, home, oidc, rhythm, time_capsule
+from family_hub import (
+    admin,
+    app_version,
+    blood_pressure,
+    core,
+    db,
+    fever,
+    growth,
+    health,
+    home,
+    oidc,
+    rhythm,
+    time_capsule,
+    vitals,
+)
 from family_hub.admin.service import token_is_valid
 from family_hub.auth import TokenCheck, create_jwt_auth
 from family_hub.config import Settings
@@ -28,7 +42,9 @@ MODULES: list[Module] = [
     home.MODULE,
     rhythm.MODULE,
     time_capsule.MODULE,
+    vitals.MODULE,
     fever.MODULE,
+    blood_pressure.MODULE,
     growth.MODULE,
     core.MODULE,
     admin.MODULE,

@@ -10,7 +10,12 @@ PRIMARY_LIGHT = "#4fb3a2"
 SECONDARY = "#64748b"
 DARK_STORAGE_KEY = "dark"
 
-LEVEL_TEXT_CLASSES = {"normal": "text-green-600", "elevated": "text-orange-500", "fever": "text-red-500"}
+LEVEL_TEXT_CLASSES = {
+    "normal": "text-green-600",
+    "elevated": "text-orange-500",
+    "fever": "text-red-500",
+    "high": "text-red-500",
+}
 
 CSS = """
 :root { --hub-bg: #f5f5f3; --hub-card: #ffffff; --hub-text: #1f2328; --hub-muted: #6b7280; --hub-border: #e4e4e0;

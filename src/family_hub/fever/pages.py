@@ -1,4 +1,4 @@
-"""Fever pages: overview (`/fever`) and episode detail (`/fever/episodes/{id}`)."""
+"""Fever pages: overview (`/vitals/fever`) and episode detail (`/vitals/fever/episodes/{id}`)."""
 
 from collections.abc import Awaitable, Callable
 from datetime import datetime
@@ -29,6 +29,7 @@ from family_hub.ui.fields import DateField, TimeField
 from family_hub.ui.i18n import t
 from family_hub.ui.layout import frame
 from family_hub.ui.theme import is_dark
+from family_hub.vitals.pages import FEVER_PATH, NAME, area_tabs
 
 Refresh = Callable[[], Awaitable[None]]
 ReadingCallback = Callable[[ReadingWrite], Awaitable[bool]]
@@ -96,15 +97,16 @@ i18n.register(
 def register_pages() -> None:
     """Register the fever pages."""
 
-    @ui.page("/fever")
+    @ui.page(FEVER_PATH)
     async def overview_page() -> None:
-        with frame("fever"):
+        with frame(NAME):
+            area_tabs("fever")
             page_title(t("fever.title"), t("fever.subtitle"))
             await _overview()
 
-    @ui.page("/fever/episodes/{episode_id}")
+    @ui.page(f"{FEVER_PATH}/episodes/{{episode_id}}")
     async def episode_page(episode_id: int) -> None:
-        with frame("fever"):
+        with frame(NAME):
             await _episode_view(episode_id)
 
 
@@ -206,7 +208,7 @@ async def _new_episode_dialog(person: PersonRead) -> None:
                 ui.notify(i18n.error_text(exc), type="negative")
                 return
             dialog.close()
-            ui.navigate.to(f"/fever/episodes/{episode.id}")
+            ui.navigate.to(f"{FEVER_PATH}/episodes/{episode.id}")
 
         with ui.row().classes("w-full justify-end gap-2"):
             ui.button(t("common.cancel"), on_click=dialog.close).props("flat")
@@ -219,7 +221,7 @@ def _episode_row(episode: EpisodeRead) -> None:
     with (
         ui.row()
         .classes("w-full items-center gap-3 no-wrap p-2 rounded-lg cursor-pointer hover:bg-black/5")
-        .on("click", lambda: ui.navigate.to(f"/fever/episodes/{episode.id}"))
+        .on("click", lambda: ui.navigate.to(f"{FEVER_PATH}/episodes/{episode.id}"))
     ):
         person_dot("#ef4444" if is_open else "var(--hub-border)")
         with ui.column().classes("gap-0 grow min-w-0"):
@@ -276,7 +278,7 @@ async def _episode_view(episode_id: int) -> None:
                 person = await core_service.get_person(session, detail.episode.person_id)
         except service.NotFoundError:
             with section():
-                empty_state(t("fever.not_found"), t("fever.to_overview"), lambda: ui.navigate.to("/fever"))
+                empty_state(t("fever.not_found"), t("fever.to_overview"), lambda: ui.navigate.to(FEVER_PATH))
             return
         _episode_header(detail, person, content.refresh)
         _summary_tiles(detail)
@@ -315,13 +317,13 @@ def _episode_header(detail: EpisodeDetail, person: PersonRead, refresh: Refresh)
             return
         async with db.session() as session:
             await service.delete_episode(session, episode.id)
-        ui.navigate.to("/fever")
+        ui.navigate.to(FEVER_PATH)
 
     def download() -> None:
         ui.download.content(service.readings_csv(detail), f"{episode.label}.csv", "text/csv")
 
     with ui.row().classes("w-full items-center gap-2 no-wrap"):
-        ui.button(icon="arrow_back", on_click=lambda: ui.navigate.to("/fever")).props("flat round")
+        ui.button(icon="arrow_back", on_click=lambda: ui.navigate.to(FEVER_PATH)).props("flat round")
         ui.element("div").classes("rounded-full").style(
             f"background:{person.color}; width:12px; height:44px; min-width:12px"
         )

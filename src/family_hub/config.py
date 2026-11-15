@@ -53,8 +53,22 @@ class Settings(BaseSettings):
     fever_threshold_adult: float = 38.2
     elevated_threshold_adult: float = 37.5
 
+    bp_elevated_systolic: int = 130
+    bp_elevated_diastolic: int = 85
+    bp_high_systolic: int = 140
+    bp_high_diastolic: int = 90
+
     growth_reference_dir: Path | None = None
     growth_reference_name: str = ""
+
+    vision_url: str = ""
+    vision_model: str = ""
+    vision_display_model: str = ""
+    vision_list_model: str = ""
+    vision_api_key: SecretStr | None = None
+    vision_timeout_seconds: float = 120.0
+    vision_display_max_edge: int = 512
+    vision_list_max_edge: int = 1536
 
     @field_validator("database_url")
     @classmethod

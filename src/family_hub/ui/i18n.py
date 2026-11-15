@@ -173,6 +173,7 @@ register(
         },
         "common.save": ("Speichern", "Save"),
         "common.cancel": ("Abbrechen", "Cancel"),
+        "common.ok": ("OK", "OK"),
         "common.delete": ("Löschen", "Delete"),
         "common.edit": ("Bearbeiten", "Edit"),
         "common.add": ("Hinzufügen", "Add"),
