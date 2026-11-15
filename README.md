@@ -1,8 +1,6 @@
 # Family Hub
 
-A self-hosted web app for families: weekly duty plan, fever records, growth charts with percentiles and a journal of
-memories, in one place. Runs as a single container with PostgreSQL. The UI is in German with an English switch and can
-be installed as an app on phones.
+A self-hosted web app for families: weekly duty plan, fever and blood pressure records, growth charts with percentiles and a journal of memories, in one place. Runs as a single container with PostgreSQL. The UI is available in English and German. I can be installed as an app on phones.
 
 ## Prerequisites
 
@@ -93,6 +91,34 @@ age;unit;P3;P10;P25;P50;P75;P90;P97;L;S
 ```
 
 `L` and `S` may be empty; they are then fitted from the percentiles.
+
+## Blood pressure limits
+
+Readings are colored as high from 140/90 mmHg, the office limit of the German guideline
+[NVL Hypertonie](https://www.leitlinien.de/themen/hypertonie) (2023), and as elevated from 130/85 mmHg ("hochnormal"
+in the ESC/ESH classification it follows). The guideline's limit for measurements at home is 135/85 mmHg. Change the
+limits with `BP_ELEVATED_SYSTOLIC`, `BP_ELEVATED_DIASTOLIC`, `BP_HIGH_SYSTOLIC` and `BP_HIGH_DIASTOLIC`.
+
+Next to single readings the app shows the mean of the last seven days, or of the last seven readings if those days
+hold fewer. A person's readings can be downloaded as a PDF or HTML report with the trend chart.
+
+## Blood pressure from a photo
+
+Blood pressure readings can be typed in or read from a photo of the monitor's display. Reading photos needs a vision
+model with an OpenAI-compatible API that you host yourself, for example llama.cpp's `llama-server` with a small
+multimodal model. Set `VISION_URL` to its base address (the app calls `/v1/chat/completions`), and `VISION_MODEL` and
+`VISION_API_KEY` if the server needs them. A server that offers several models can use a different one for
+displays and lists: `VISION_DISPLAY_MODEL` and `VISION_LIST_MODEL` (default: `VISION_MODEL`). If they differ, the display dialog offers a switch to
+read a photo with the list model.
+`VISION_TIMEOUT_SECONDS` defaults to 120. Photos are shrunk before they
+are sent: `VISION_DISPLAY_MAX_EDGE` (512 pixels) for displays and `VISION_LIST_MAX_EDGE` (1536) for lists. Smaller is
+faster, larger reads small digits better.
+
+A photo of a written list of earlier readings (date, time, values; handwritten works too) can be imported the same
+way: the lines found are shown for review, each one can be changed or left out, and only then are they saved.
+
+Without `VISION_URL` the photo buttons are hidden. The values from a photo are only filled into the form; nothing is
+saved before you confirm, and the photo is not stored.
 
 ## Deployment
 
